@@ -61,7 +61,7 @@ stock setjmp(env[JmpBuf])
 	#emit stor.i
 
 	#emit lctrl 4
-	#emit const.alt 12
+	#emit const.alt 4
 	#emit sub
 	#emit push.pri
 	#emit load.s.alt env
