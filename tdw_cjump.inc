@@ -107,10 +107,11 @@ stock longjmp(env[JmpBuf], val)
 		#emit lref.pri addr
 		#emit stor.pri psize
 
-		env[jstk] += psize;
-
 		if (psize >= 4)
 			psize -= 4;
+
+		env[jstk] += psize;
+
 	}
 
 	// Set the value by address in env[jretval]
