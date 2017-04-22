@@ -87,9 +87,6 @@ stock setjmp(env[JmpBuf], &retval)
 	#emit load.s.pri 4
 	#emit stor.i
 
-	// We get the instruction that follows the call instruction. It need to
-	// get the operand of the instruction to set the return value.
-
 	return 0;
 }
 
