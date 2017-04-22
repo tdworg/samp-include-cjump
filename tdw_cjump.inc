@@ -100,14 +100,17 @@ stock longjmp(env[JmpBuf], val)
 	if (env[jlastfunc] != addr) {
 		env[jlastfunc] = addr;
 
-		new psize;
+		static psize;
 		#emit load.pri addr
 		#emit add.c 8
 		#emit stor.pri addr
 		#emit lref.pri addr
-		#emit stor.s.pri psize
+		#emit stor.pri psize
 
-		env[jstk] += psize - 4;
+		env[jstk] += psize;
+
+		if (psize >= 4)
+			psize -= 4;
 	}
 
 	// Set the value by address in env[jretval]
