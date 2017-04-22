@@ -48,99 +48,84 @@ enum JmpBuf
 
 stock setjmp(env[JmpBuf], &retval)
 {
-	#emit load.s.alt env
-	#emit const.pri jretval
-	#emit idxaddr
-	#emit move.alt
-	#emit load.s.pri retval
-	#emit stor.i
+	static
+		hea,
+		frm,
+		stk,
+		rvip,
+		rval;
 
-	#emit load.s.alt env
-	#emit const.pri jhea
-	#emit idxaddr
-	#emit move.alt
 	#emit lctrl 2
-	#emit stor.i
+	#emit stor.pri hea
 
-	#emit load.s.alt env
-	#emit const.pri jfrm
-	#emit idxaddr
-	#emit move.alt
 	#emit load.s.pri 0
-	#emit stor.i
+	#emit stor.pri frm
 
 	#emit lctrl 4
-	#emit const.alt 16
-	#emit sub
-	#emit push.pri
-	#emit load.s.alt env
-	#emit const.pri jstk
-	#emit idxaddr
-	#emit move.alt
-	#emit pop.pri
-	#emit stor.i
+	#emit stor.pri stk
 
-	#emit load.s.alt env
-	#emit const.pri jjump
-	#emit idxaddr
-	#emit move.alt
 	#emit load.s.pri 4
-	#emit stor.i
+	#emit stor.pri rvip
+
+	#emit load.s.pri retval
+	#emit stor.pri rval
+
+	env[jfrm]    = frm;
+	env[jhea]    = hea;
+	env[jstk]    = stk;
+	env[jjump]   = rvip;
+	env[jretval] = rval;
 
 	return 0;
 }
 
 stock longjmp(env[JmpBuf], val)
 {
-	static addr;
+	static
+		hea,
+		frm,
+		stk,
+		rvip,
+		rval,
+		lfunc,
+		addr,
+		args;
 
-	// Clear paramters from the stack
+	hea = env[jhea];
+	frm = env[jfrm];
+	stk = env[jstk];
+	rvip = env[jjump];
+	rval = env[jretval];
+	lfunc = env[jlastfunc];
+
+	#emit load.s.pri val
+	#emit sref.pri rval
+
 	#emit load.s.pri 0
 	#emit stor.pri addr
-	if (env[jlastfunc] != addr) {
+
+	#emit add.c 8
+	#emit load.i
+	#emit stor.pri args
+
+	if (addr != lfunc) {
 		env[jlastfunc] = addr;
-
-		static psize;
-		#emit load.pri addr
-		#emit add.c 8
-		#emit stor.pri addr
-		#emit lref.pri addr
-		#emit stor.pri psize
-
-		if (psize >= 4)
-			psize -= 4;
-
-		env[jstk] += psize;
-
 	}
 
-	// Set the value by address in env[jretval]
-	if (env[jretval] != 0) {
-		#emit load.s.alt env
-		#emit const.pri jretval
-		#emit lidx
-		#emit stor.pri addr
-		#emit load.s.pri val
-		#emit sref.pri addr
+	if (args > 4) {
+		stk += args + 8;
 	} {}
 
-	// Restore the old values and jump
-	#emit load.s.alt env
-
-	#emit const.pri jfrm
-	#emit lidx
+	#emit load.pri frm
 	#emit sctrl 5
 
-	#emit const.pri jhea
-	#emit lidx
+	#emit load.pri hea
 	#emit sctrl 2
 
-	#emit const.pri jstk
-	#emit lidx
+	#emit load.pri stk
 	#emit sctrl 4
 
-	#emit const.pri jjump
-	#emit lidx
+	#emit load.pri rvip
 	#emit sctrl 6
 
 	return 0;  // make compiler happy
