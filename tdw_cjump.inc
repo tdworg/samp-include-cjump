@@ -43,7 +43,6 @@ enum JmpBuf
 	jstk,      // stack ptr.
 	jjump,     // the instruction pointer to the return address
 	jretval,   // reference to the variable
-	jlastfunc  // last function address (FRM)
 };
 
 stock setjmp(env[JmpBuf], &retval)
@@ -87,8 +86,6 @@ stock longjmp(env[JmpBuf], val)
 		stk,
 		rvip,
 		rval,
-		lfunc,
-		addr,
 		args;
 
 	hea = env[jhea];
@@ -96,21 +93,14 @@ stock longjmp(env[JmpBuf], val)
 	stk = env[jstk];
 	rvip = env[jjump];
 	rval = env[jretval];
-	lfunc = env[jlastfunc];
 
 	#emit load.s.pri val
 	#emit sref.pri rval
 
 	#emit load.s.pri 0
-	#emit stor.pri addr
-
 	#emit add.c 8
 	#emit load.i
 	#emit stor.pri args
-
-	if (addr != lfunc) {
-		env[jlastfunc] = addr;
-	}
 
 	if (args > 4) {
 		stk += args + 8;
