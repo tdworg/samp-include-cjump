@@ -4,7 +4,7 @@
 | Description:
 
 | Version:
-	1.1.0
+	1.2.0
 
 | License:
 	Copyright (c) 2017 Double V
