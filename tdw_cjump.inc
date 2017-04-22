@@ -38,14 +38,23 @@
 
 enum JmpBuf
 {
-	jhea,  // heap ptr.
-	jfrm,  // frame ptr.
-	jstk,  // stack ptr.
-	jjump  // the instruction pointer to the return address
+	jhea,      // heap ptr.
+	jfrm,      // frame ptr.
+	jstk,      // stack ptr.
+	jjump,     // the instruction pointer to the return address
+	jretval,   // reference to the variable
+	jlastfunc  // last function address (FRM)
 };
 
-stock setjmp(env[JmpBuf])
+stock setjmp(env[JmpBuf], &retval)
 {
+	#emit load.s.alt env
+	#emit const.pri jretval
+	#emit idxaddr
+	#emit move.alt
+	#emit load.s.pri retval
+	#emit stor.i
+
 	#emit load.s.alt env
 	#emit const.pri jhea
 	#emit idxaddr
@@ -61,7 +70,7 @@ stock setjmp(env[JmpBuf])
 	#emit stor.i
 
 	#emit lctrl 4
-	#emit const.alt 4
+	#emit const.alt 16
 	#emit sub
 	#emit push.pri
 	#emit load.s.alt env
@@ -78,12 +87,45 @@ stock setjmp(env[JmpBuf])
 	#emit load.s.pri 4
 	#emit stor.i
 
+	// We get the instruction that follows the call instruction. It need to
+	// get the operand of the instruction to set the return value.
+
 	return 0;
 }
 
-stock longjmp(env[JmpBuf]/*, val (see below) */)
+stock longjmp(env[JmpBuf], val)
 {
+	static addr;
+
+	// Clear paramters from the stack
+	#emit load.s.pri 0
+	#emit stor.pri addr
+	if (env[jlastfunc] != addr) {
+		env[jlastfunc] = addr;
+
+		new psize;
+		#emit load.pri addr
+		#emit add.c 8
+		#emit stor.pri addr
+		#emit lref.pri addr
+		#emit stor.s.pri psize
+
+		env[jstk] += psize - 4;
+	}
+
+	// Set the value by address in env[jretval]
+	if (env[jretval] != 0) {
+		#emit load.s.alt env
+		#emit const.pri jretval
+		#emit lidx
+		#emit stor.pri addr
+		#emit load.s.pri val
+		#emit sref.pri addr
+	} {}
+
+	// Restore the old values and jump
 	#emit load.s.alt env
+
 	#emit const.pri jfrm
 	#emit lidx
 	#emit sctrl 5
@@ -98,7 +140,6 @@ stock longjmp(env[JmpBuf]/*, val (see below) */)
 
 	#emit const.pri jjump
 	#emit lidx
-	// We can't return values because to return the values we MUST use the PRI.
 	#emit sctrl 6
 
 	return 0;  // make compiler happy
