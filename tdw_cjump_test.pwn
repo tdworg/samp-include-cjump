@@ -49,6 +49,7 @@ loop1(val)
 	longjmp(jumpbuffer1, val);
 }
 
+// This is bad, because you have to use goto instead of C-jumps.
 start2()
 {
 	new
