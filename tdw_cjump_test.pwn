@@ -6,7 +6,6 @@ main()
 {
 	start0();
 	start1();
-	start2();
 }
 
 const ITER = 10;
@@ -47,17 +46,4 @@ loop1(val)
 {
 	printf("%d", val++);
 	longjmp(jumpbuffer1, val);
-}
-
-// This is bad, because you have to use goto instead of C-jumps.
-start2()
-{
-	new
-		retval;
-	setjmp(jumpbuffer1, retval);
-
-	if (retval < ITER) {
-		printf("%d", retval++);
-		longjmp(jumpbuffer1, retval);
-	}
 }
