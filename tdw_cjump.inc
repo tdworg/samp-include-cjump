@@ -6,6 +6,12 @@
 | Version:
 	1.2.1
 
+| Dependencies:
+	-
+
+| Compatible with the JIT plugin:
+	No
+
 | License:
 	Copyright (c) 2017 Double V
 
